@@ -1,0 +1,199 @@
+import 'dart:io';
+
+class Book {
+  String title;
+  String author;
+  String isbn;
+  int copies;
+
+  Book(this.title, this.author, this.isbn, this.copies);
+
+  void borrowBook() {
+    if (copies > 0) {
+      copies--;
+    } else {
+      print("No copies left to borrow.");
+    }
+  }
+
+  void returnBook() {
+    copies++;
+  }
+
+  @override
+  String toString() {
+    return 'Book: $title by $author (ISBN: $isbn), Copies: $copies';
+  }
+}
+
+class Member {
+  String name;
+  String memberId;
+  List<Book> borrowedBooks = [];
+
+  Member(this.name, this.memberId);
+
+  void borrowBook(Book book) {
+    borrowedBooks.add(book);
+    book.borrowBook();
+  }
+
+  void returnBook(Book book) {
+    borrowedBooks.remove(book);
+    book.returnBook();
+  }
+
+  @override
+  String toString() {
+    return 'Member: $name (ID: $memberId), Borrowed Books: ${borrowedBooks.length}';
+  }
+}
+
+class Library {
+  List<Book> books = [];
+  List<Member> members = [];
+
+  void addBook(Book book) {
+    books.add(book);
+  }
+
+  void removeBook(Book book) {
+    books.remove(book);
+  }
+
+  void registerMember(Member member) {
+    members.add(member);
+  }
+
+  void borrowBook(String memberId, String isbn) {
+    Member? member = members.firstWhere((m) => m.memberId == memberId, orElse: () => null as Member);
+    Book? book = books.firstWhere((b) => b.isbn == isbn, orElse: () => null as Book);
+
+    if (member != null && book != null && book.copies > 0) {
+      member.borrowBook(book);
+      print("${member.name} borrowed ${book.title}");
+    } else {
+      print("Book cannot be borrowed.");
+    }
+  }
+
+  void returnBook(String memberId, String isbn) {
+    Member? member = members.firstWhere((m) => m.memberId == memberId, orElse: () => null as Member);
+    Book? book = books.firstWhere((b) => b.isbn == isbn, orElse: () => null as Book);
+
+    if (member != null && book != null) {
+      member.returnBook(book);
+      print("${member.name} returned ${book.title}");
+    } else {
+      print("Book cannot be returned.");
+    }
+  }
+
+  @override
+  String toString() {
+    return 'Library: ${books.length} books, ${members.length} members';
+  }
+}
+
+void main() {
+  Library library = Library();
+  
+  while (true) {
+    print("\nLibrary Menu:");
+    print("1. Add Book");
+    print("2. Remove Book");
+    print("3. Register Member");
+    print("4. Borrow Book");
+    print("5. Return Book");
+    print("6. Show Library Status");
+    print("7. Show Member Status");
+    print("8. Exit");
+    stdout.write("Choose an option: ");
+    String? choice = stdin.readLineSync();
+
+    switch (choice) {
+      case '1':
+        stdout.write("Enter book title: ");
+        String? title = stdin.readLineSync();
+        stdout.write("Enter book author: ");
+        String? author = stdin.readLineSync();
+        stdout.write("Enter book ISBN: ");
+        String? isbn = stdin.readLineSync();
+        stdout.write("Enter number of copies: ");
+        int? copies = int.tryParse(stdin.readLineSync() ?? "0");
+        if (title != null && author != null && isbn != null && copies != null) {
+          library.addBook(Book(title, author, isbn, copies));
+          print("Book added successfully!");
+          print("Added book details: Title: $title, Author: $author, ISBN: $isbn, Copies: $copies");
+        } else {
+          print("Invalid input!");
+        }
+        break;
+      case '2':
+        stdout.write("Enter book ISBN to remove: ");
+        String? isbn = stdin.readLineSync();
+        Book? bookToRemove = library.books.firstWhere((b) => b.isbn == isbn, orElse: () => null as Book);
+        if (bookToRemove != null) {
+          library.removeBook(bookToRemove);
+          print("Book removed successfully!");
+          print("Removed book details: ${bookToRemove}");
+        } else {
+          print("Book not found!");
+        }
+        break;
+      case '3':
+        stdout.write("Enter member name: ");
+        String? name = stdin.readLineSync();
+        stdout.write("Enter member ID: ");
+        String? memberId = stdin.readLineSync();
+        if (name != null && memberId != null) {
+          library.registerMember(Member(name, memberId));
+          print("Member registered successfully!");
+          print("Registered member details: Name: $name, ID: $memberId");
+        } else {
+          print("Invalid input!");
+        }
+        break;
+      case '4':
+        stdout.write("Enter member ID: ");
+        String? memberId = stdin.readLineSync();
+        stdout.write("Enter book ISBN: ");
+        String? isbn = stdin.readLineSync();
+        if (memberId != null && isbn != null) {
+          library.borrowBook(memberId, isbn);
+        } else {
+          print("Invalid input!");
+        }
+        break;
+      case '5':
+        stdout.write("Enter member ID: ");
+        String? memberId = stdin.readLineSync();
+        stdout.write("Enter book ISBN: ");
+        String? isbn = stdin.readLineSync();
+        if (memberId != null && isbn != null) {
+          library.returnBook(memberId, isbn);
+        } else {
+          print("Invalid input!");
+        }
+        break;
+      case '6':
+        print(library);
+        break;
+      case '7':
+        stdout.write("Enter member ID: ");
+        String? memberId = stdin.readLineSync();
+        Member? member = library.members.firstWhere((m) => m.memberId == memberId, orElse: () => null as Member);
+        if (member != null) {
+          print(member);
+        } else {
+          print("Member not found!");
+        }
+        break;
+      case '8':
+        return;
+      default:
+        print("Invalid choice! Please try again.");
+        break;
+    }
+  }
+}
